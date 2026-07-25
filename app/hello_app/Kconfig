@@ -3,8 +3,41 @@
 # see the file kconfig-language.txt in the NuttX tools repository.
 #
 
-config LVX_USE_DEMO_CONTEST2026_000_HELLO_APP
-	bool "Contest 2026 team 000 hello app"
+menuconfig LVX_USE_DEMO_CONTEST2026_208_LVGL_SCREEN_TEST
+	tristate "MoXin Smart Learning LVGL UI"
 	default n
+	depends on GRAPHICS_LVGL
+	depends on LV_USE_NUTTX
+	depends on LV_USE_NUTTX_LCD
+	depends on KVDB
 	---help---
-		Enable the contest 2026 team 000 hello app demo.
+		Enable the contest 2026 team 208 local-first learning UI. The
+		former LCD and touchscreen test remains available as a diagnostic
+		mode.
+
+if LVX_USE_DEMO_CONTEST2026_208_LVGL_SCREEN_TEST
+
+config LVX_USE_DEMO_CONTEST2026_208_LVGL_SCREEN_TEST_PRIORITY
+	int "lvgl_screen_test task priority"
+	default 100
+
+config LVX_USE_DEMO_CONTEST2026_208_LVGL_SCREEN_TEST_STACKSIZE
+	int "lvgl_screen_test stack size"
+	default 40960
+
+config LVX_USE_DEMO_CONTEST2026_208_LVGL_SCREEN_TEST_INPUT_DEVPATH
+	string "Touchscreen device path"
+	default "/dev/input0"
+	depends on LV_USE_NUTTX_TOUCHSCREEN
+	---help---
+		Path to the touchscreen input device.
+
+config LVX_USE_DEMO_CONTEST2026_208_LVGL_SCREEN_TEST_FONT_PATH
+	string "Chinese font path"
+	default "/resource/fonts/MiSans-Normal.ttf"
+	depends on LV_USE_FREETYPE
+	---help---
+		Runtime path of a Chinese TrueType font. The UI falls back to an
+		English presentation when this file is unavailable.
+
+endif
