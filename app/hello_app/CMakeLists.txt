@@ -1,7 +1,21 @@
-# Contest 2026 team 000 hello app
-if(CONFIG_LVX_USE_DEMO_CONTEST2026_000_HELLO_APP)
+if(CONFIG_LVX_USE_DEMO_CONTEST2026_208_LVGL_SCREEN_TEST)
   nuttx_add_application(
-    NAME hello_app
-    SRCS hello_app_main.c
-    STACKSIZE 2048)
+    NAME
+    lvgl_screen_test
+    PRIORITY
+    ${CONFIG_LVX_USE_DEMO_CONTEST2026_208_LVGL_SCREEN_TEST_PRIORITY}
+    STACKSIZE
+    ${CONFIG_LVX_USE_DEMO_CONTEST2026_208_LVGL_SCREEN_TEST_STACKSIZE}
+    MODULE
+    ${CONFIG_LVX_USE_DEMO_CONTEST2026_208_LVGL_SCREEN_TEST}
+    DEPENDS
+    lvgl
+    framework_utils
+    SRCS
+    hello_app_main.c
+    moxinzhi_ai_service.c
+    moxinzhi_diag.c
+    moxinzhi_model.c
+    moxinzhi_storage.c
+    moxinzhi_ui.c)
 endif()
