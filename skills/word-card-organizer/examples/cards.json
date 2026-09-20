@@ -1,0 +1,11 @@
+{
+  "schema": "moxinzhi-vocab/1",
+  "cards": [
+    {"front": "apple", "back": "n. 苹果。例：I eat an apple. 我吃一个苹果。"},
+    {"front": "improve", "back": "v. 改进；提高。例：Practice can improve your English. 练习能提高你的英语。"},
+    {"front": "bank (river)", "back": "n. 河岸。例：We sat on the river bank. 我们坐在河岸上。"},
+    {"front": "bank (finance)", "back": "n. 银行。例：She works at a bank. 她在一家银行工作。"},
+    {"front": "take off (flight)", "back": "phr. 起飞。例：The plane will take off soon. 飞机即将起飞。"}
+  ],
+  "needs_review": []
+}

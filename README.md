@@ -1,5 +1,31 @@
 # contest2026_208_moxinzhixue
 
+## 墨芯智学作品说明
+
+墨芯智学是基于 openvela 与 Gemini-S1 的 AI 问答、知识卡和 Anki 学习终端。设备将文字/按键语音问答、知识卡保存、掌握反馈与学习统计放在同一套 LVGL 界面中，并在设备上直接导入受支持的 Anki APKG 牌组。设备承担显示、录音播放和本地存储，云端小智兼容服务承担 STT、LLM 与 TTS；已有卡片可供本地复习，不宣称离线大模型推理。
+
+成员闫恒睿独立完成方案、开发和真机联调。当前作品基线为 `fc8f4e10a53b5d87fc09f32b4c93b18b3d960b68`，标签为 `moxinzhi-integration-20260920`。核心功能曾由作者确认在 Gemini-S1 真机跑通；时延、功耗及长期稳定性以最终固件的原始记录为准。
+
+### 参赛代码目录
+
+- `app/hello_app/`：五页 LVGL 界面、学习模型、异步运行时、平台服务和小智客户端。
+- `app/anki_importer/`：APKG 解析、媒体提取、事务恢复与卡片存储。
+- `skills/word-card-organizer/`：单词卡整理 Skill、JSON 校验、TSV 导出和主机测试。
+- `docs/单词卡Skill部署与验收.md`：设备 Skill 安装和真实触发验收步骤。
+- `logs/`：按赛事工具导出的真实 AI Coding 日志；官方示例不能替代开发日志。
+
+### 构建与运行提示
+
+本仓库通过 manifest 链接到完整 openvela 工作区，不是独立 BSP。目标配置参考：
+
+```sh
+./build.sh vendor/allwinnertech/boards/r528/r528s3-gemini-s1/configs/nsh --cmake -j6
+lvgl_screen_test
+anki_import /data/import/my-deck.apkg
+```
+
+Anki 当前兼容 `collection.anki2` / `collection.anki21` 旧格式、普通双字段、单正向模板；不支持 `anki21b`、cloze、复杂模板和原始调度历史。单词卡 Skill 需由实际启用的 `ai_agent` 扫描 `/data/agent/skills/*.md`，原有小智客户端不是该加载器；部署和验收见 `docs/单词卡Skill部署与验收.md`。
+
 👋 欢迎参加 **2026 首届 openvela AI 硬件开发者大赛**！
 
 这是组委会为你的队伍创建的**专属参赛仓库**（本仓为样例/模板，队伍编号 `208`；你看到的将是你自己的 `contest2026_<编号>_<队伍名>`）。比赛期间，你的全部参赛代码、打包产物与 AI Coding 日志都提交到这里。
