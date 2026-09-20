@@ -11,9 +11,10 @@
 #include <stddef.h>
 
 #define MZ_PROMPT_COUNT 3
-#define MZ_QUESTION_MAX 56
-#define MZ_ANSWER_MAX   128
-#define MZ_TOPIC_MAX    20
+#define MZ_QUESTION_MAX_CHARS 64
+#define MZ_QUESTION_MAX       257
+#define MZ_ANSWER_MAX         769
+#define MZ_TOPIC_MAX          64
 
 struct mz_ai_result_s
 {

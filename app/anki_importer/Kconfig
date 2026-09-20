@@ -1,0 +1,101 @@
+#
+# Moxinzhixue board-side Anki importer
+#
+
+menuconfig MOXINZHI_ANKI_IMPORTER
+	bool "Moxinzhixue Anki package importer"
+	default n
+	depends on SYSTEM_POPEN
+	depends on FS_LARGEFILE
+	depends on FS_LINKS
+	depends on FS_LOCK_BUCKET_SIZE > 0
+	select LIB_ZLIB
+	select NETUTILS_CJSON
+	select UNQLITE
+	select LIB_SQLITE
+	---help---
+		Enable board-side import of legacy Anki 2.0/2.1 APKG files.
+		The importer intentionally rejects the new collection.anki21b/zstd
+		format and does not execute templates, JavaScript, or LaTeX.
+
+if MOXINZHI_ANKI_IMPORTER
+
+config MOXINZHI_ANKI_IMPORTER_PRIORITY
+	int "anki_import task priority"
+	default 100
+
+config MOXINZHI_ANKI_IMPORTER_STACKSIZE
+	int "anki_import stack size"
+	default 49152
+
+config MOXINZHI_ANKI_INPUT_ROOT
+	string "Allowed APKG input directory"
+	default "/data/import"
+
+config MOXINZHI_CARD_STORE_PATH
+	string "Local card model path"
+	default "/data/moxinzhi/cards.unqlite"
+
+config MOXINZHI_CARD_MEDIA_ROOT
+	string "Imported media directory"
+	default "/data/moxinzhi/media"
+
+config MOXINZHI_ANKI_WORK_ROOT
+	string "Importer temporary directory"
+	default "/data/moxinzhi/.import-work"
+
+config MOXINZHI_ANKI_REPORT_ROOT
+	string "Importer report directory"
+	default "/data/moxinzhi/import-reports"
+
+config MOXINZHI_ANKI_MAX_PACKAGE_MIB
+	int "Maximum APKG size (MiB)"
+	default 512
+	range 1 2048
+
+config MOXINZHI_ANKI_MAX_COLLECTION_MIB
+	int "Maximum extracted collection size (MiB)"
+	default 64
+	range 1 512
+
+config MOXINZHI_ANKI_MAX_TOTAL_MIB
+	int "Maximum total uncompressed archive size (MiB)"
+	default 768
+	range 1 4096
+
+config MOXINZHI_ANKI_MAX_MEDIA_FILE_MIB
+	int "Maximum single media file size (MiB)"
+	default 32
+	range 1 256
+
+config MOXINZHI_ANKI_MAX_ENTRIES
+	int "Maximum ZIP entry count"
+	default 20000
+	range 16 100000
+
+config MOXINZHI_ANKI_MAX_CARDS
+	int "Maximum imported card count"
+	default 100000
+	range 1 1000000
+
+config MOXINZHI_ANKI_MAX_FIELD_BYTES
+	int "Maximum bytes per front/back field"
+	default 32768
+	range 1024 262144
+
+config MOXINZHI_ANKI_MAX_METADATA_KIB
+	int "Maximum model/deck JSON size (KiB)"
+	default 1024
+	range 16 8192
+
+config MOXINZHI_ANKI_MAX_MEDIA_MAP_KIB
+	int "Maximum media map size (KiB)"
+	default 2048
+	range 16 16384
+
+config MOXINZHI_ANKI_MAX_COMPRESSION_RATIO
+	int "Maximum ZIP compression ratio"
+	default 250
+	range 10 1000
+
+endif

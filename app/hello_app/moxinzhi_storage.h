@@ -14,7 +14,7 @@
 int mz_storage_load(FAR struct mz_model_meta_s *meta,
                     FAR struct mz_card_s cards[MZ_CARD_CAPACITY]);
 int mz_storage_save_meta(FAR const struct mz_model_meta_s *meta);
-int mz_storage_save_card(uint8_t slot, FAR const struct mz_card_s *card);
+int mz_storage_save_card(uint8_t slot, FAR struct mz_card_s *card);
 int mz_storage_reset(void);
 FAR const char *mz_storage_backend_path(void);
 

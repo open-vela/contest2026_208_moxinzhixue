@@ -2,6 +2,6 @@
 # Contest 2026 team 208 MoXin Smart Learning - Make.defs
 ############################################################################
 
-ifneq ($(CONFIG_LVX_USE_DEMO_CONTEST2026_208_LVGL_SCREEN_TEST),)
+ifneq ($(CONFIG_LVX_USE_DEMO_CONTEST2026_208_LVGL_SCREEN_TEST)$(CONFIG_LVX_USE_DEMO_CONTEST2026_208_PLATFORM_SERVICE),)
 CONFIGURED_APPS += $(APPDIR)/packages/demos/contest2026_208_hello_app
 endif
