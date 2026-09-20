@@ -15,10 +15,15 @@
 
 #include <lvgl/lvgl.h>
 
+#include "moxinzhi_board_keys.h"
+#include "moxinzhi_instance.h"
 #include "moxinzhi_model.h"
+#include "moxinzhi_runtime.h"
 #include "moxinzhi_ui.h"
 
 #define MZ_LOOP_MAX_MS 20
+#define MZ_PLATFORM_REFRESH_MS 1000
+#define MZ_AI_REFRESH_MS 100
 
 #ifdef CONFIG_LV_USE_NUTTX_TOUCHSCREEN
 #  define MZ_INPUT_DEVPATH \
@@ -92,6 +97,12 @@ static int mz_parse_options(int argc, FAR char *argv[],
 int main(int argc, FAR char *argv[])
 {
   struct mz_options_s options;
+  struct mz_instance_guard_s instance;
+  struct mz_platform_binding_s platform_binding;
+  struct mz_ai_result_s ai_result;
+  struct mz_board_key_events_s key_events;
+  struct mz_board_keys_s board_keys;
+  FAR struct mz_runtime_s *runtime = NULL;
   struct mz_model_s model;
   struct mz_ui_s ui;
   lv_nuttx_dsc_t info;
@@ -99,7 +110,12 @@ int main(int argc, FAR char *argv[])
   uint32_t start_ms;
   uint32_t elapsed_ms;
   uint32_t idle_ms;
+  uint32_t last_platform_ms;
   bool touch_available = false;
+  bool board_keys_warned = false;
+  bool hardware_ptt_active = false;
+  int ai_status;
+  int key_status;
   int ret;
 
   ret = mz_parse_options(argc, argv, &options);
@@ -108,9 +124,29 @@ int main(int argc, FAR char *argv[])
       return ret > 0 ? EXIT_SUCCESS : EXIT_FAILURE;
     }
 
+  ret = mz_instance_acquire(&instance);
+  if (ret < 0)
+    {
+      if (ret == -EBUSY)
+        {
+          fprintf(stderr,
+                  "lvgl_screen_test: another instance is already running"
+                  " (pid %ld)\n", (long)instance.owner);
+        }
+      else
+        {
+          fprintf(stderr,
+                  "lvgl_screen_test: cannot acquire instance lock: %d\n",
+                  ret);
+        }
+
+      return EXIT_FAILURE;
+    }
+
   if (lv_is_initialized())
     {
       fprintf(stderr, "lvgl_screen_test: LVGL is already initialized\n");
+      mz_instance_release(&instance);
       return EXIT_FAILURE;
     }
 
@@ -133,6 +169,7 @@ int main(int argc, FAR char *argv[])
       fprintf(stderr, "lvgl_screen_test: failed to open /dev/lcd0\n");
       lv_nuttx_deinit(&result);
       lv_deinit();
+      mz_instance_release(&instance);
       return EXIT_FAILURE;
     }
 
@@ -151,13 +188,29 @@ int main(int argc, FAR char *argv[])
       fprintf(stderr, "lvgl_screen_test: KVDB load failed: %d\n", ret);
     }
 
-  ret = mz_ui_init(&ui, result.disp, &model, touch_available,
-                   options.diagnostic);
+  memset(&platform_binding, 0, sizeof(platform_binding));
+  ret = mz_runtime_create(&runtime, &platform_binding);
+  if (ret < 0)
+    {
+      fprintf(stderr, "lvgl_screen_test: cloud/platform runtime unavailable: "
+                      "%d\n", ret);
+      runtime = NULL;
+    }
+  else
+    {
+      mz_ai_service_set_provider(&model.ai, mz_runtime_query, runtime);
+    }
+
+  ret = mz_ui_init_with_platform(
+    &ui, result.disp, &model, touch_available,
+    runtime == NULL ? NULL : &platform_binding, options.diagnostic);
   if (ret < 0)
     {
       fprintf(stderr, "lvgl_screen_test: UI creation failed: %d\n", ret);
+      mz_runtime_destroy(runtime);
       lv_nuttx_deinit(&result);
       lv_deinit();
+      mz_instance_release(&instance);
       return EXIT_FAILURE;
     }
 
@@ -174,9 +227,50 @@ int main(int argc, FAR char *argv[])
 #endif
   printf(options.diagnostic ? " [diagnostic]\n" : " [product]\n");
 
+  key_status = mz_board_keys_init(&board_keys);
+  if (key_status < 0)
+    {
+      fprintf(stderr,
+              "lvgl_screen_test: board keys unavailable (%s): %d\n",
+              MZ_BOARD_KEYS_DEVPATH, key_status);
+      board_keys_warned = true;
+    }
+
   start_ms = lv_tick_get();
+  last_platform_ms = start_ms;
   for (;;)
     {
+      key_status = mz_board_keys_poll(&board_keys, lv_tick_get(),
+                                      &key_events);
+      if (key_status < 0 && !board_keys_warned)
+        {
+          fprintf(stderr,
+                  "lvgl_screen_test: board key input disabled: %d\n",
+                  key_status);
+          board_keys_warned = true;
+        }
+
+      if (key_events.ptt_press)
+        {
+          hardware_ptt_active = mz_ui_hardware_ptt_press(&ui) >= 0;
+        }
+
+      if (key_events.ptt_release)
+        {
+          if (hardware_ptt_active)
+            {
+              mz_ui_hardware_ptt_release(&ui, false);
+            }
+
+          hardware_ptt_active = false;
+        }
+
+      if (key_events.volume_delta != 0)
+        {
+          (void)mz_ui_hardware_volume_step(&ui,
+                                           key_events.volume_delta);
+        }
+
       idle_ms = lv_timer_handler();
       if (idle_ms == 0)
         {
@@ -196,12 +290,39 @@ int main(int argc, FAR char *argv[])
             }
         }
 
+      if (runtime != NULL &&
+          mz_runtime_take_query_result(runtime, &ai_result,
+                                       &ai_status) == 0)
+        {
+          (void)mz_model_complete_ai(&model, ai_status, &ai_result);
+          mz_ui_model_changed(&ui);
+        }
+
+      if (runtime != NULL &&
+          (ui.page == MZ_PAGE_SETTINGS || ui.page == MZ_PAGE_ASK) &&
+          !mz_input_is_open(&ui.input) &&
+          (uint32_t)(lv_tick_get() - last_platform_ms) >=
+            (ui.page == MZ_PAGE_ASK ? MZ_AI_REFRESH_MS :
+                                      MZ_PLATFORM_REFRESH_MS))
+        {
+          last_platform_ms = lv_tick_get();
+          mz_ui_platform_changed(&ui);
+        }
+
       usleep(idle_ms * 1000);
     }
 
+  if (hardware_ptt_active)
+    {
+      mz_ui_hardware_ptt_release(&ui, true);
+    }
+
+  mz_board_keys_deinit(&board_keys);
   mz_ui_deinit(&ui);
+  mz_runtime_destroy(runtime);
   lv_nuttx_deinit(&result);
   lv_deinit();
+  mz_instance_release(&instance);
   printf("lvgl_screen_test: complete\n");
   return EXIT_SUCCESS;
 }

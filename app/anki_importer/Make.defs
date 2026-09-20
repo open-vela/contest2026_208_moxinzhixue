@@ -1,0 +1,13 @@
+############################################################################
+# SPDX-License-Identifier: Apache-2.0
+############################################################################
+
+ifneq ($(CONFIG_MOXINZHI_ANKI_IMPORTER),)
+CONFIGURED_APPS += $(APPDIR)/packages/demos/contest2026_208_anki_importer
+
+# sqlite_cfg.h is generated on the host, where uint32_t may use a different
+# underlying C type than arm-none-eabi.  Keep SQLite's private ABI aligned
+# with the public sqlite3.h declarations for legacy Make builds.
+CFLAGS += ${DEFINE_PREFIX}UINT32_TYPE=unsigned
+CFLAGS += ${DEFINE_PREFIX}INT32_TYPE=int
+endif

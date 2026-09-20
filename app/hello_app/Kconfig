@@ -4,7 +4,7 @@
 #
 
 menuconfig LVX_USE_DEMO_CONTEST2026_208_LVGL_SCREEN_TEST
-	tristate "MoXin Smart Learning LVGL UI"
+	bool "MoXin Smart Learning LVGL UI"
 	default n
 	depends on GRAPHICS_LVGL
 	depends on LV_USE_NUTTX
@@ -39,5 +39,183 @@ config LVX_USE_DEMO_CONTEST2026_208_LVGL_SCREEN_TEST_FONT_PATH
 	---help---
 		Runtime path of a Chinese TrueType font. The UI falls back to an
 		English presentation when this file is unavailable.
+
+config LVX_USE_DEMO_CONTEST2026_208_XIAOZHI_CLIENT
+	bool "Build Xiaozhi full-chain cloud client"
+	default y
+	depends on LIB_CURL
+	depends on CRYPTO_MBEDTLS
+	depends on NETUTILS_CJSON
+	depends on NETUTILS_NETLIB
+	depends on LIB_OPUS
+	depends on AUDIOUTILS_ALSA_LIB
+	---help---
+		Build the modular Xiaozhi WebSocket, official OTA pairing,
+		protocol and ALSA/Opus audio sources. Device-Id is derived from
+		the Wi-Fi MAC and Client-Id is a persistent UUID. Tokens are never
+		accepted or printed by the pairing command.
+
+if LVX_USE_DEMO_CONTEST2026_208_XIAOZHI_CLIENT
+
+config LVX_USE_DEMO_CONTEST2026_208_XIAOZHI_CLIENT_PRIORITY
+	int "xiaozhi_chat task priority"
+	default 100
+
+config LVX_USE_DEMO_CONTEST2026_208_XIAOZHI_CLIENT_STACKSIZE
+	int "xiaozhi_chat stack size"
+	default 49152
+
+config LVX_USE_DEMO_CONTEST2026_208_XIAOZHI_PAIR_PRIORITY
+	int "xiaozhi_pair task priority"
+	default 100
+
+config LVX_USE_DEMO_CONTEST2026_208_XIAOZHI_PAIR_STACKSIZE
+	int "xiaozhi_pair stack size"
+	default 32768
+
+config LVX_USE_DEMO_CONTEST2026_208_XIAOZHI_OTA_URL
+	string "Xiaozhi OTA/provisioning URL"
+	default "https://api.tenclass.net/xiaozhi/ota/"
+	---help---
+		Official Xiaozhi OTA endpoint. Production values must use HTTPS.
+
+config LVX_USE_DEMO_CONTEST2026_208_XIAOZHI_LANGUAGE
+	string "Xiaozhi request language"
+	default "zh-CN"
+
+config LVX_USE_DEMO_CONTEST2026_208_XIAOZHI_WIFI_IFNAME
+	string "Interface used for Device-Id"
+	default "wlan0"
+
+config LVX_USE_DEMO_CONTEST2026_208_XIAOZHI_IDENTITY_PATH
+	string "Persistent Xiaozhi Client-Id path"
+	default "/data/gemini-s1/xz_client_id"
+
+config LVX_USE_DEMO_CONTEST2026_208_XIAOZHI_CREDENTIALS_PATH
+	string "Persistent Xiaozhi WSS credentials path"
+	default "/data/gemini-s1/xz_cloud.json"
+
+config LVX_USE_DEMO_CONTEST2026_208_XIAOZHI_CA_FILE
+	string "Optional CA bundle file"
+	default ""
+	---help---
+		Leave empty to use the built-in DigiCert Global Root G2 certificate.
+		An explicit path overrides the built-in certificate.
+
+config LVX_USE_DEMO_CONTEST2026_208_XIAOZHI_BOARD_NAME
+	string "Xiaozhi board name"
+	default "gemini-s1"
+
+config LVX_USE_DEMO_CONTEST2026_208_XIAOZHI_CHIP_MODEL
+	string "Xiaozhi chip model"
+	default "r528"
+
+config LVX_USE_DEMO_CONTEST2026_208_XIAOZHI_FIRMWARE_VERSION
+	string "Version reported to Xiaozhi OTA"
+	default "0.2.0"
+
+config LVX_USE_DEMO_CONTEST2026_208_XIAOZHI_ALLOW_PLAINTEXT
+	bool "Allow plaintext OTA/WebSocket endpoints (development only)"
+	default n
+	---help---
+		Keep disabled for the official service. TLS peer and hostname
+		verification remain enabled by default.
+
+endif
+
+endif
+
+menuconfig LVX_USE_DEMO_CONTEST2026_208_PLATFORM_SERVICE
+	bool "Gemini-S1 platform service and hardware self-test"
+	default n
+	depends on WIRELESS_WAPI
+	depends on WIRELESS_WAPI_INITCONF
+	depends on NETUTILS_NETLIB
+	depends on NETUTILS_DHCPC
+	depends on NETUTILS_CJSON
+	depends on SYSTEM_NXRECORDER
+	depends on SYSTEM_NXPLAYER
+	depends on AUDIO_FORMAT_PCM
+	depends on PIPES
+	depends on DEV_FIFO_SIZE > 0
+	depends on NETUTILS_NTPCLIENT
+	depends on KVDB
+	---help---
+		Enable the non-display Gemini-S1 platform service and gs1_hwcheck.
+		Blocking hardware operations are serialized on a private worker queue.
+
+if LVX_USE_DEMO_CONTEST2026_208_PLATFORM_SERVICE
+
+config LVX_USE_DEMO_CONTEST2026_208_PLATFORM_PRIORITY
+	int "gs1_hwcheck task priority"
+	default 100
+
+config LVX_USE_DEMO_CONTEST2026_208_PLATFORM_STACKSIZE
+	int "gs1_hwcheck stack size"
+	default 16384
+
+config LVX_USE_DEMO_CONTEST2026_208_PLATFORM_WORKER_STACKSIZE
+	int "platform worker stack size"
+	default 32768
+
+config LVX_USE_DEMO_CONTEST2026_208_PLATFORM_ROOT
+	string "Persistent platform data root"
+	default "/data/gemini-s1"
+
+config LVX_USE_DEMO_CONTEST2026_208_PLATFORM_WIFI_IFNAME
+	string "Wi-Fi interface"
+	default "wlan0"
+
+config LVX_USE_DEMO_CONTEST2026_208_PLATFORM_RECORD_MAX_FILES
+	int "Maximum retained recordings"
+	default 20
+	range 1 1000
+
+config LVX_USE_DEMO_CONTEST2026_208_PLATFORM_RECORD_MAX_BYTES
+	int "Maximum retained recording bytes"
+	default 67108864
+	range 1048576 1073741824
+
+config LVX_USE_DEMO_CONTEST2026_208_PLATFORM_AUDIO_SAMPLE_RATE
+	int "Default PCM sample rate"
+	default 16000
+
+config LVX_USE_DEMO_CONTEST2026_208_PLATFORM_AUDIO_CHANNELS
+	int "Default PCM channel count"
+	default 1
+	range 1 8
+
+config LVX_USE_DEMO_CONTEST2026_208_PLATFORM_AUDIO_BITS
+	int "Default PCM bits per sample"
+	default 16
+	range 8 32
+
+config LVX_USE_DEMO_CONTEST2026_208_PLATFORM_AUDIO_CHANNEL_MAP
+	int "Default R528 audio channel map"
+	default 0
+	range 0 255
+
+config LVX_USE_DEMO_CONTEST2026_208_PLATFORM_AUDIO_STREAM_BUFFER_BYTES
+	int "Low-latency PCM stream ring buffer bytes"
+	default 32768
+	range 4096 262144
+
+config LVX_USE_DEMO_CONTEST2026_208_PLATFORM_AUDIO_CAPTURE_DEVICE
+	string "PCM capture device"
+	default "/dev/audio/pcm0c"
+
+config LVX_USE_DEMO_CONTEST2026_208_PLATFORM_AUDIO_PLAYBACK_DEVICE
+	string "PCM playback device"
+	default "/dev/audio/pcm0p"
+
+config LVX_USE_DEMO_CONTEST2026_208_PLATFORM_NTP_RESTART_SECONDS
+	int "Seconds without an NTP sample before restart"
+	default 12
+	range 5 120
+
+config LVX_USE_DEMO_CONTEST2026_208_PLATFORM_NTP_MAX_RESTARTS
+	int "Maximum NTP restarts per sync attempt"
+	default 2
+	range 0 10
 
 endif

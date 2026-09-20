@@ -1,0 +1,17 @@
+{
+  "schema": "moxinzhi-anki-import-report/1",
+  "result": 0,
+  "format": 20,
+  "fingerprint": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "warnings": 23,
+  "archive_entries": 5,
+  "cards_seen": 2,
+  "cards_imported": 1,
+  "cards_skipped": 1,
+  "decks_imported": 1,
+  "media_mapped": 3,
+  "media_imported": 2,
+  "media_skipped": 2,
+  "media_bytes": 24,
+  "message": "import complete"
+}
